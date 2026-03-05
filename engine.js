@@ -50,11 +50,14 @@ const Engine = {
 
             const winners = Hand.winners(solverHands);
             const winAmt = Math.floor(pot.amount / winners.length);
+            const remainder = pot.amount % winners.length;
 
-            winners.forEach(w => {
+            winners.forEach((w, idx) => {
                 const player = handToPlayer.get(w);
                 if (player) {
-                    results.push({ id: player.id, name: player.name, amount: winAmt, handName: w.name });
+                    // 余数分配给第一个赢家（按位置优先）
+                    const extra = (idx === 0) ? remainder : 0;
+                    results.push({ id: player.id, name: player.name, amount: winAmt + extra, handName: w.name });
                 }
             });
         });

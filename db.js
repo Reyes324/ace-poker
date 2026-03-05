@@ -1,7 +1,12 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
-const db = new Database(path.join(__dirname, 'poker.db'));
+// Render disk 挂载路径，本地开发回退到项目根目录
+const DATA_DIR = process.env.RENDER ? '/opt/render/project/src/data' : __dirname;
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+const db = new Database(path.join(DATA_DIR, 'poker.db'));
 
 // 初始化表结构
 db.exec(`

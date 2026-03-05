@@ -8,6 +8,8 @@ services:
     envVars:
       - key: PORT
         value: 3000
+      - key: RENDER
+        value: true
     disk:
       name: data
       mountPath: /opt/render/project/src/data
