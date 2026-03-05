@@ -410,4 +410,4 @@ socket.on('game_result', (res) => {
 });
 
 const SAVED_NICK = localStorage.getItem('poker_nick');
-if (SAVED_NICK) socket.emit('join_req', SAVED_NICK);
+if (SAVED_NICK) nickInput.value = SAVED_NICK;
