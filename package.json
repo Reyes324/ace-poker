@@ -1,0 +1,25 @@
+{
+  "name": "ace-poker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "express": "^5.2.1",
+    "poker-helper": "^8.0.0-beta1",
+    "pokersolver": "^2.1.4",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "chai": "^6.2.2",
+    "mocha": "^11.7.5",
+    "socket.io-client": "^4.8.3"
+  }
+}
