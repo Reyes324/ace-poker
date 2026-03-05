@@ -3,115 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    <title>ACE Poker - 竞技德州</title>
+    <title>ACE Poker - Compact UI</title>
     <style>
-        :root {
-            --bg-dark: #070809;
-            --table-green: #143528;
-            --table-border: #1e4d3a;
-            --gold: #d4af37;
-            --danger: #ff4757;
-            --action: #2e86de;
-            --card-white: #ffffff;
-            --text-secondary: #8e8e93;
-        }
-
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            /* 针对中国安卓/iOS 设备的字体栈优化 */
-            font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none;
-        }
-
-        body {
-            background-color: var(--bg-dark); color: #fff;
-            height: 100vh; width: 100vw; overflow: hidden; 
-            display: flex; flex-direction: column;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* --- 3D 卡牌样式 --- */
-        .card { width: 38px; height: 54px; perspective: 1000px; background: none !important; border: none !important; }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); transform-style: preserve-3d; }
+        :root { --bg-dark: #070809; --table-green: #143528; --table-border: #1e4d3a; --gold: #d4af37; --danger: #ff4757; --action: #2e86de; --card-white: #ffffff; --text-secondary: #8e8e93; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body { background-color: var(--bg-dark); color: #fff; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* 3D 卡牌核心样式 */
+        .card { width: 36px; height: 50px; perspective: 1000px; background: none !important; border: none !important; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .card.flipped .card-inner { transform: rotateY(180deg); }
         .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; padding: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         .card-front { background: var(--card-white); color: #000; transform: rotateY(180deg); }
         .card-back { background: linear-gradient(135deg, #1e272e 0%, #2f3640 100%); border: 1px solid rgba(255,255,255,0.2); }
-        .card .v { font-size: 13px; font-weight: 900; line-height: 1; }
-        .card .s { align-self: flex-end; font-size: 15px; }
-        .card.red .v, .card.red .s { color: #d63031; }
+        .card .v { font-size: 12px; font-weight: 900; } .card .s { align-self: flex-end; font-size: 14px; } .card.red .v, .card.red .s { color: #d63031; }
 
-        /* --- 动画关键帧 --- */
         @keyframes fly-in { from { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.2); opacity: 0; } to { opacity: 1; transform: translate(0, 0) scale(1); } }
-        @keyframes fly-chip { from { opacity: 1; transform: scale(1.2); } to { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); opacity: 0; } }
         .anim-card { position: fixed; z-index: 1000; pointer-events: none; animation: fly-in 0.6s ease-out forwards; }
-        .anim-chip { position: fixed; width: 20px; height: 20px; background: var(--gold); border-radius: 50%; border: 2px dashed #000; z-index: 1000; pointer-events: none; animation: fly-chip 0.5s ease-in forwards; }
-
-        /* --- 进度条与脉冲 --- */
-        .timer-svg { position: absolute; top: -4px; left: -4px; width: 48px; height: 48px; transform: rotate(-90deg); display: none; pointer-events: none; z-index: 10; }
+        .timer-svg { position: absolute; top: -4px; left: -4px; width: 44px; height: 48px; transform: rotate(-90deg); display: none; }
         .player.active .timer-svg { display: block; }
         .timer-circle { fill: none; stroke: var(--gold); stroke-width: 3; stroke-dasharray: 126; stroke-dashoffset: 0; }
-        @keyframes countdown { from { stroke-dashoffset: 0; stroke: var(--gold); } to { stroke-dashoffset: 126; stroke: var(--danger); } }
+        @keyframes countdown { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 126; } }
         .player.active .timer-circle { animation: countdown 20s linear forwards; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } }
-        .player.active .avatar { animation: pulse 2s infinite; border-color: var(--gold); transform: scale(1.05); }
 
-        /* --- 布局优化 --- */
-        .header { padding: 10px 20px; padding-top: env(safe-area-inset-top, 10px); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.8); border-bottom: 0.5px solid #333; }
-        .logo { font-size: 17px; font-weight: 600; color: var(--gold); letter-spacing: 1px; }
-        .info-bar { height: 34px; background: rgba(255,255,255,0.03); display: flex; justify-content: center; align-items: center; font-size: 12px; color: var(--gold); font-weight: 500; }
-        .game-viewport { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 10px; }
-        .table-wrap { width: 100%; height: 50%; display: flex; justify-content: center; align-items: center; position: relative; }
-        .poker-table { width: 85%; height: 95%; background: radial-gradient(circle at center, var(--table-green) 0%, #0a1b14 100%); border: 4px solid var(--table-border); border-radius: 100px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .header { padding: 8px 20px; padding-top: env(safe-area-inset-top, 10px); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.8); border-bottom: 0.5px solid #333; }
+        .info-bar { height: 30px; background: rgba(255,255,255,0.03); display: flex; justify-content: center; align-items: center; font-size: 11px; color: var(--gold); }
+        .game-viewport { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 5px; }
+        .table-wrap { width: 100%; height: 55%; display: flex; justify-content: center; align-items: center; position: relative; }
+        .poker-table { width: 85%; height: 95%; background: radial-gradient(circle at center, var(--table-green) 0%, #0a1b14 100%); border: 4px solid var(--table-border); border-radius: 100px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
-        .player { position: absolute; display: flex; flex-direction: column; align-items: center; width: 60px; opacity: 0.4; transition: all 0.3s; }
+        .player { position: absolute; display: flex; flex-direction: column; align-items: center; width: 60px; opacity: 0.4; }
         .player.occupied { opacity: 1; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #1c1c1e; border: 1.5px solid #3a3a3c; display: flex; justify-content: center; align-items: center; font-size: 11px; position: relative; overflow: visible; }
-        .p-name { font-size: 10px; color: var(--text-secondary); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
-        .p-chips { font-size: 9px; color: var(--gold); font-weight: 600; }
-        .action-bubble { position: absolute; top: -20px; background: #fff; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 800; display: none; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: #1c1c1e; border: 1.5px solid #3a3a3c; display: flex; justify-content: center; align-items: center; font-size: 11px; position: relative; }
+        .player.active .avatar { border-color: var(--gold); box-shadow: 0 0 8px var(--gold); }
+        .p-name { font-size: 9px; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; }
+        .p-chips { font-size: 9px; color: var(--gold); }
+        .action-bubble { position: absolute; top: -18px; background: #fff; color: #000; padding: 1px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; display: none; }
         .action-bubble.show { display: block; }
 
-        /* 座位定位 */
-        .p-L1 { left: -15px; top: 65%; } .p-L2 { left: -15px; top: 20%; } .p-R1 { right: -15px; top: 65%; } .p-R2 { right: -15px; top: 20%; } .p-Top { top: -35px; left: 50%; transform: translateX(-50%); }
+        .p-L1 { left: -15px; top: 65%; } .p-L2 { left: -15px; top: 20%; } .p-R1 { right: -15px; top: 65%; } .p-R2 { right: -15px; top: 20%; } .p-Top { top: -30px; left: 50%; transform: translateX(-50%); }
 
-        .my-area { height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; position: relative; }
-        .my-status { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-        .my-avatar { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #333; background: #1c1c1e; display: flex; justify-content: center; align-items: center; position: relative; }
-        .my-action-bubble { background: var(--gold); color: #000; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 800; margin-bottom: 8px; display: none; }
-        .my-action-bubble.show { display: block; }
+        /* 本人区域 - 紧凑横向排布 */
+        .my-area { height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
+        .my-status { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .my-avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #333; background: #1c1c1e; display: flex; justify-content: center; align-items: center; position: relative; }
+        .my-hand { display: flex; flex-direction: row; gap: 5px; }
+        .my-hand .card { width: 32px; height: 46px; } /* 缩小本人手牌 */
+        .my-hand .card .v { font-size: 11px; }
+        .my-action-bubble { background: var(--gold); color: #000; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-bottom: 4px; display: none; }
 
-        .actions { background: #000; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 15px)); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; border-top: 0.5px solid #333; }
-        .btn { height: 50px; border-radius: 12px; border: none; color: #fff; font-size: 15px; font-weight: 600; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.4; pointer-events: none; }
+        .actions { background: #000; padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 15px)); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; border-top: 0.5px solid #333; }
+        .btn { height: 48px; border-radius: 10px; border: none; color: #fff; font-size: 14px; font-weight: 600; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.4; pointer-events: none; }
         .btn.active { opacity: 1; pointer-events: auto; }
-        .btn-f { background: #3a3a3c; } .btn-c { background: var(--action); } .btn-r { background: var(--gold); color: #000; }
-        .btn-s { font-size: 10px; margin-top: 2px; }
-
-        /* 覆盖层 */
-        #login { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
-        #nick { background: #1c1c1e; border: none; color: #fff; padding: 16px; border-radius: 12px; width: 80%; text-align: center; font-size: 17px; outline: none; }
-        #go { background: var(--gold); color: #000; width: 80%; padding: 16px; border-radius: 12px; font-weight: 600; font-size: 17px; border: none; }
+        .btn-f { background: #2c2c2e; } .btn-c { background: var(--action); } .btn-r { background: var(--gold); color: #000; }
         
-        #raise-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2500; display: none; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        #login { position: fixed; inset: 0; background: #000; z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        #nick { background: #1c1c1e; border: none; color: #fff; padding: 16px; border-radius: 12px; width: 80%; text-align: center; font-size: 17px; outline: none; }
+        #go { background: var(--gold); color: #000; width: 80%; padding: 16px; border-radius: 12px; font-weight: 600; border: none; }
+        #raise-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: none; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
         #raise-input { background: #1c1c1e; border: 2px solid var(--gold); color: #fff; width: 70%; padding: 20px; border-radius: 16px; font-size: 32px; text-align: center; outline: none; }
         .quick-btn { flex: 1; background: #2c2c2e; border: none; color: #eee; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 700; }
     </style>
 </head>
 <body>
-
     <div id="login">
         <div style="font-size: 28px; font-weight: 800; color: var(--gold); letter-spacing: 2px;">ACE POKER</div>
-        <input type="text" id="nick" placeholder="输入您的昵称" maxlength="8" autocomplete="off">
-        <button id="go">开始对局</button>
-        <button id="watch-btn" style="background:none; border:none; color:#666; font-size:14px; display:none; text-decoration:underline;">观看比赛</button>
+        <input type="text" id="nick" placeholder="输入您的昵称" maxlength="8">
+        <button id="go" onclick="onLogin()">开始对局</button>
     </div>
 
     <div id="raise-modal">
-        <div style="color:var(--gold); font-weight:600;">加注控制</div>
+        <div style="color:var(--gold); font-weight:600;">加注金额</div>
         <div style="display:flex; gap:8px; width:80%;">
             <button class="quick-btn" onclick="setRaiseRate(0.33)">1/3</button>
             <button class="quick-btn" onclick="setRaiseRate(0.66)">2/3</button>
@@ -119,30 +81,16 @@
             <button class="quick-btn" style="background:var(--danger); color:#fff;" onclick="setRaiseAllIn()">ALLIN</button>
         </div>
         <input type="number" id="raise-input" inputmode="numeric" pattern="\d*">
-        <div id="min-raise-hint" style="color:#666; font-size:12px;"></div>
         <div style="display:flex; gap:12px; width:80%;">
             <button onclick="closeRaiseModal()" style="flex:1; padding:15px; border-radius:12px; background:#333; color:#fff; border:none;">取消</button>
             <button onclick="confirmRaise()" style="flex:1; padding:15px; border-radius:12px; background:var(--gold); border:none;">确定</button>
         </div>
     </div>
 
-    <div id="ledger-overlay" style="position:fixed; inset:0; background:#000; z-index:4000; display:none; flex-direction:column; padding-top:20px;">
-        <div style="padding:20px; display:flex; justify-content:space-between; border-bottom:0.5px solid #333;">
-            <span style="color:var(--gold); font-weight:700;">对局账本</span>
-            <span id="ledger-close" style="font-size:24px; padding: 5px;">✕</span>
-        </div>
-        <div id="ledger-list" style="flex:1; overflow-y:auto; padding:15px; -webkit-overflow-scrolling: touch;"></div>
-    </div>
-
-    <div id="result-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:5000; display:none; flex-direction:column; justify-content:center; align-items:center; padding:20px;">
-        <div style="color:var(--gold); font-weight:800; margin-bottom:20px; letter-spacing:2px;">结算结果</div>
-        <div id="result-cards" style="width:100%; display:flex; flex-direction:column; gap:10px;"></div>
-    </div>
-
     <div class="header">
         <div class="logo">ACE POKER</div>
         <div style="display:flex; align-items:center; gap:12px;">
-            <div id="btn-ledger" style="font-size:18px;">📋</div>
+            <div onclick="openLedger()" style="font-size:18px;">📋</div>
             <div id="top-chips" style="color:var(--gold); font-weight:600;">¥ --</div>
         </div>
     </div>
@@ -152,31 +100,25 @@
     <div class="game-viewport">
         <div class="table-wrap">
             <div class="poker-table">
-                <div style="text-align:center; margin-bottom:10px;">
-                    <div style="font-size:10px; color:#666;">POT</div>
-                    <div id="pot" style="font-size:22px; font-weight:800; color:var(--gold);">¥ 0</div>
+                <div style="text-align:center; margin-bottom:8px;">
+                    <div id="pot" style="font-size:20px; font-weight:800; color:var(--gold);">¥ 0</div>
                     <div id="side-pots" style="font-size:9px; color:var(--gold); margin-top:2px;"></div>
                 </div>
                 <div id="comm" style="display:flex; gap:4px;"></div>
-
-                <div id="seat-top" class="player p-Top"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="24" cy="24" r="20"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
-                <div id="seat-l2" class="player p-L2"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="24" cy="24" r="20"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
-                <div id="seat-r2" class="player p-R2"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="24" cy="24" r="20"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
-                <div id="seat-l1" class="player p-L1"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="24" cy="24" r="20"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
-                <div id="seat-r1" class="player p-R1"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="24" cy="24" r="20"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
+                <div id="seat-top" class="player p-Top"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="22" cy="24" r="18"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
+                <div id="seat-l2" class="player p-L2"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="22" cy="24" r="18"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
+                <div id="seat-r2" class="player p-R2"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="22" cy="24" r="18"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
+                <div id="seat-l1" class="player p-L1"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="22" cy="24" r="18"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
+                <div id="seat-r1" class="player p-R1"><div class="action-bubble"></div><div class="avatar"><svg class="timer-svg"><circle class="timer-circle" cx="22" cy="24" r="18"></circle></svg><span>空</span></div><div class="p-name">--</div><div class="p-chips">--</div></div>
             </div>
         </div>
-
         <div id="me-area" class="my-area">
             <div id="my-action" class="my-action-bubble"></div>
             <div class="my-status">
-                <div class="my-avatar">
-                    <svg class="timer-svg" style="width:54px; height:54px; top:-4px; left:-4px;"><circle class="timer-circle" cx="27" cy="27" r="23" style="stroke-dasharray:145;"></circle></svg>
-                    <span>你</span>
-                </div>
-                <div style="display:flex; flex-direction:column; margin-left:10px;">
-                    <div id="my-name" style="font-weight:600; font-size:15px;">访客</div>
-                    <div id="my-val" style="color:var(--gold); font-size:13px; font-weight:700;">¥ --</div>
+                <div class="my-avatar"><svg class="timer-svg" style="width:46px; height:46px; top:-4px; left:-4px;"><circle class="timer-circle" cx="23" cy="23" r="20" style="stroke-dasharray:126;"></circle></svg><span>你</span></div>
+                <div style="display:flex; flex-direction:column; margin-left:8px;">
+                    <div id="my-name" style="font-weight:600; font-size:14px;">访客</div>
+                    <div id="my-val" style="color:var(--gold); font-size:12px; font-weight:700;">¥ --</div>
                 </div>
             </div>
             <div id="my-hand" class="my-hand"></div>
@@ -184,11 +126,21 @@
     </div>
 
     <div class="actions">
-        <button class="btn btn-r" id="btn-start-now" style="grid-column:1/span 3; display:none; background:#4cd964; color:#000;">发牌开始</button>
-        <button class="btn btn-r" id="btn-sit" style="grid-column:1/span 3; display:none;">加入游戏</button>
-        <button class="btn btn-f" id="f">弃牌<span class="btn-s">FOLD</span></button>
-        <button class="btn btn-c" id="c">跟注<span class="btn-s">CALL</span></button>
-        <button class="btn btn-r" id="r">加注<span class="btn-s">RAISE</span></button>
+        <button class="btn btn-r" id="btn-start-now" onclick="onStartHand()" style="grid-column:1/span 3; display:none; background:#4cd964; color:#000; opacity:1; pointer-events:auto;">发牌开始</button>
+        <button class="btn btn-r" id="btn-sit" onclick="onSitDown()" style="grid-column:1/span 3; display:none; opacity:1; pointer-events:auto;">加入游戏</button>
+        <button class="btn btn-f" id="f" onclick="onFold()">弃牌</button>
+        <button class="btn btn-c" id="c" onclick="onCall()">跟注</button>
+        <button class="btn btn-r" id="r" onclick="onRaiseOpen()">加注</button>
+    </div>
+
+    <div id="ledger-overlay" style="position:fixed; inset:0; background:#000; z-index:6000; display:none; flex-direction:column; padding-top:20px;">
+        <div style="padding:20px; display:flex; justify-content:space-between; border-bottom:0.5px solid #333;"><span style="color:var(--gold); font-weight:700;">账本</span><span onclick="closeLedger()" style="font-size:24px;">✕</span></div>
+        <div id="ledger-list" style="flex:1; overflow-y:auto; padding:15px; -webkit-overflow-scrolling:touch;"></div>
+    </div>
+
+    <div id="result-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:7000; display:none; flex-direction:column; justify-content:center; align-items:center; padding:20px;">
+        <div style="color:var(--gold); font-weight:800; margin-bottom:20px;">结算结果</div>
+        <div id="result-cards" style="width:100%; display:flex; flex-direction:column; gap:10px;"></div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
